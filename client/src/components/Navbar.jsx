@@ -1,38 +1,71 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import './Navbar.css';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => { setMenuOpen(false); }, [location]);
+
+  const handleLogout = () => { logout(); navigate('/'); };
+
+  const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex justify-between items-center">
-      <Link to="/" className="text-2xl font-bold text-blue-400">
-        🔍 TruthLens
-      </Link>
-      <div className="flex gap-6 items-center">
-        <Link to="/" className="hover:text-blue-400 transition">Home</Link>
-        <Link to="/analyze" className="hover:text-blue-400 transition">Analyze</Link>
-        {user && <Link to="/dashboard" className="hover:text-blue-400 transition">Dashboard</Link>}
-        {user ? (
-          <button onClick={handleLogout}
-            className="bg-red-600 hover:bg-red-700 px-4 py-1.5 rounded-lg text-sm transition">
-            Logout
+    <nav className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}>
+      <div className="navbar-inner">
+        <Link to="/" className="navbar-brand">
+          <div className="brand-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
+              <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M11 8v6M8 11h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <span className="brand-text">TruthLens</span>
+        </Link>
+
+        <div className={`navbar-links ${menuOpen ? 'open' : ''}`}>
+          <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Home</Link>
+          <Link to="/analyze" className={`nav-link ${isActive('/analyze') ? 'active' : ''}`}>Analyze</Link>
+          {user && <Link to="/dashboard" className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}>Dashboard</Link>}
+        </div>
+
+        <div className="navbar-actions">
+          {user ? (
+            <div className="user-menu">
+              <div className="user-avatar">
+                {user.avatar
+                  ? <img src={user.avatar} alt={user.name} referrerPolicy="no-referrer" />
+                  : <span>{user.name?.charAt(0).toUpperCase()}</span>
+                }
+              </div>
+              <span className="user-name">{user.name?.split(' ')[0]}</span>
+              <button className="btn btn-outline" style={{padding:'8px 14px',fontSize:'13px'}} onClick={handleLogout}>
+                Sign out
+              </button>
+            </div>
+          ) : (
+            <div className="auth-buttons">
+              <Link to="/login" className="btn btn-outline" style={{padding:'8px 16px',fontSize:'13px'}}>Sign in</Link>
+              <Link to="/register" className="btn btn-primary" style={{padding:'8px 16px',fontSize:'13px'}}>Get started</Link>
+            </div>
+          )}
+          <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
+            <span /><span /><span />
           </button>
-        ) : (
-          <>
-            <Link to="/login" className="hover:text-blue-400 transition">Login</Link>
-            <Link to="/register"
-              className="bg-blue-600 hover:bg-blue-700 px-4 py-1.5 rounded-lg text-sm transition">
-              Register
-            </Link>
-          </>
-        )}
+        </div>
       </div>
     </nav>
   );

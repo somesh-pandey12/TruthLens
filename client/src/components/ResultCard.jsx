@@ -1,67 +1,67 @@
+import './ResultCard.css';
+
 export default function ResultCard({ result }) {
   const isReal = result.verdict === 'REAL';
   const isFake = result.verdict === 'FAKE';
+  const score = result.reliabilityScore;
 
-  const scoreColor = result.reliabilityScore >= 70
-    ? 'text-green-400' : result.reliabilityScore >= 40
-    ? 'text-yellow-400' : 'text-red-400';
-
-  const bgColor = isReal ? 'border-green-500' : isFake ? 'border-red-500' : 'border-yellow-500';
-  const badge = isReal ? 'bg-green-600' : isFake ? 'bg-red-600' : 'bg-yellow-600';
+  const verdictClass = isReal ? 'verdict-real' : isFake ? 'verdict-fake' : 'verdict-uncertain';
+  const verdictLabel = isReal ? '✓ Likely Real' : isFake ? '✗ Likely Fake' : '~ Uncertain';
+  const scoreColor = score >= 70 ? '#10b981' : score >= 40 ? '#f59e0b' : '#ef4444';
 
   return (
-    <div className={`mt-8 p-6 bg-gray-900 border-2 ${bgColor} rounded-2xl`}>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Analysis Result</h2>
-        <span className={`${badge} px-4 py-1 rounded-full text-sm font-semibold`}>
-          {result.verdict}
-        </span>
+    <div className={`result-card animate-in ${verdictClass}`}>
+      <div className="result-header">
+        <div>
+          <p className="result-label">Analysis Complete</p>
+          <h2 className="result-title">Content Verification Report</h2>
+        </div>
+        <span className={`verdict-badge ${verdictClass}`}>{verdictLabel}</span>
       </div>
 
       {/* Score Bar */}
-      <div className="mb-6">
-        <div className="flex justify-between mb-1">
-          <span className="text-gray-400 text-sm">Reliability Score</span>
-          <span className={`font-bold text-xl ${scoreColor}`}>{result.reliabilityScore}%</span>
+      <div className="score-section">
+        <div className="score-top">
+          <span className="score-label">Reliability Score</span>
+          <span className="score-value" style={{ color: scoreColor }}>{score}%</span>
         </div>
-        <div className="w-full bg-gray-700 rounded-full h-4">
+        <div className="score-track">
           <div
-            className={`h-4 rounded-full transition-all duration-700 ${
-              result.reliabilityScore >= 70 ? 'bg-green-500' :
-              result.reliabilityScore >= 40 ? 'bg-yellow-500' : 'bg-red-500'
-            }`}
-            style={{ width: `${result.reliabilityScore}%` }}
+            className="score-fill"
+            style={{ width: `${score}%`, background: scoreColor }}
           />
+        </div>
+        <div className="score-markers">
+          <span>Low credibility</span>
+          <span>High credibility</span>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="bg-gray-800 p-4 rounded-xl">
-          <p className="text-gray-400 text-xs mb-1">Confidence</p>
-          <p className="text-white font-semibold text-lg">{result.confidence}%</p>
+      {/* Stats */}
+      <div className="stats-grid">
+        <div className="stat-item">
+          <span className="stat-label">Confidence</span>
+          <span className="stat-value">{result.confidence}%</span>
         </div>
-        <div className="bg-gray-800 p-4 rounded-xl">
-          <p className="text-gray-400 text-xs mb-1">Sentiment</p>
-          <p className="text-white font-semibold text-lg">{result.sentiment}</p>
+        <div className="stat-item">
+          <span className="stat-label">Sentiment</span>
+          <span className={`stat-value sentiment-${result.sentiment?.toLowerCase()}`}>{result.sentiment}</span>
         </div>
-        <div className="bg-gray-800 p-4 rounded-xl">
-          <p className="text-gray-400 text-xs mb-1">Subjectivity</p>
-          <p className="text-white font-semibold text-lg">{result.subjectivity}%</p>
+        <div className="stat-item">
+          <span className="stat-label">Subjectivity</span>
+          <span className="stat-value">{result.subjectivity}%</span>
         </div>
-        <div className="bg-gray-800 p-4 rounded-xl">
-          <p className="text-gray-400 text-xs mb-1">Verdict</p>
-          <p className={`font-semibold text-lg ${isReal ? 'text-green-400' : 'text-red-400'}`}>
-            {result.verdict}
-          </p>
+        <div className="stat-item">
+          <span className="stat-label">Verdict</span>
+          <span className={`stat-value ${isReal ? 'text-green' : 'text-red'}`}>{result.verdict}</span>
         </div>
       </div>
 
       {/* Explanation */}
       {result.explanation && (
-        <div className="bg-gray-800 p-4 rounded-xl">
-          <p className="text-gray-400 text-xs mb-1">📝 Explanation</p>
-          <p className="text-gray-200 text-sm">{result.explanation}</p>
+        <div className="explanation-box">
+          <p className="explanation-label">📋 AI Explanation</p>
+          <p className="explanation-text">{result.explanation}</p>
         </div>
       )}
     </div>

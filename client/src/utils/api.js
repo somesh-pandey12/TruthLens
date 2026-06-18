@@ -12,3 +12,4 @@ export const analyzeText = (data) => API.post('/analysis/analyze', data);
 export const getHistory = () => API.get('/analysis/history');
 export const loginUser = (data) => API.post('/auth/login', data);
 export const registerUser = (data) => API.post('/auth/register', data);
+export const googleAuth = (data) => API.post('/auth/google', data);
