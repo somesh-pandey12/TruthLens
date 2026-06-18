@@ -15,7 +15,6 @@
     "react-gauge-component": "^2.0.29",
     "react-router-dom": "^7.18.0",
     "react-scripts": "5.0.1",
-    "tailwindcss": "^4.3.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -41,5 +40,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.1"
   }
 }
