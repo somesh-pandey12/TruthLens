@@ -4,7 +4,8 @@ import { loginUser, googleAuth } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import './Auth.css';
 
-const GOOGLE_CLIENT_ID = '658229660985-260ldjoasd02ljl9s5o7s20vj14pgatr.apps.googleusercontent.com';
+
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -15,19 +16,30 @@ export default function Login() {
   const navigate = useNavigate();
   const googleBtnRef = useRef(null);
 
+  // Google Login Response Handler
   const handleGoogleResponse = useCallback(async (response) => {
+    if (!response.credential) {
+      setError('Google Sign-In response is missing.');
+      return;
+    }
+
     setGoogleLoading(true);
     setError('');
+    
     try {
       const res = await googleAuth({ credential: response.credential });
+      // Context mein user data save karein
       login(res.data.token, res.data.name, res.data.email, res.data.avatar);
       navigate('/analyze');
-    } catch {
-      setError('Google sign-in failed. Please try again.');
+    } catch (err) {
+      console.error("Google Login Error:", err);
+      setError('Google sign-in failed. Please try again or check your internet.');
+    } finally {
+      setGoogleLoading(false);
     }
-    setGoogleLoading(false);
   }, [login, navigate]);
 
+  // Google Script Initialization
   useEffect(() => {
     const initGoogle = () => {
       if (window.google?.accounts?.id && googleBtnRef.current) {
@@ -50,24 +62,34 @@ export default function Login() {
       initGoogle();
     } else {
       const interval = setInterval(() => {
-        if (window.google) { initGoogle(); clearInterval(interval); }
+        if (window.google) { 
+          initGoogle(); 
+          clearInterval(interval); 
+        }
       }, 200);
       return () => clearInterval(interval);
     }
   }, [handleGoogleResponse]);
 
+  // Email/Password Form Handler
   const handleSubmit = async (e) => {
     e?.preventDefault();
-    if (!form.email || !form.password) { setError('Please fill in all fields.'); return; }
-    setLoading(true); setError('');
+    if (!form.email || !form.password) { 
+      setError('Please fill in all fields.'); 
+      return; 
+    }
+    
+    setLoading(true); 
+    setError('');
     try {
       const res = await loginUser(form);
       login(res.data.token, res.data.name, res.data.email);
       navigate('/analyze');
-    } catch {
+    } catch (err) {
       setError('Invalid email or password. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -87,9 +109,11 @@ export default function Login() {
         <h1 className="auth-title">Welcome back</h1>
         <p className="auth-sub">Sign in to your account to continue</p>
 
+        {/* Google Button Container */}
         <div className="google-btn-wrapper" ref={googleBtnRef} />
+        
         {googleLoading && (
-          <p style={{textAlign:'center',fontSize:'13px',color:'var(--text-muted)'}}>
+          <p style={{textAlign:'center', fontSize:'13px', color:'var(--text-muted)'}}>
             Signing in with Google…
           </p>
         )}
@@ -98,21 +122,15 @@ export default function Login() {
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input 
-              type="email" 
-              id="email" 
-              value={form.email} 
-              onChange={(e) => setForm({...form, email: e.target.value})} 
-              required 
+              type="email" id="email" value={form.email} 
+              onChange={(e) => setForm({...form, email: e.target.value})} required 
             />
           </div>
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input 
-              type="password" 
-              id="password" 
-              value={form.password} 
-              onChange={(e) => setForm({...form, password: e.target.value})} 
-              required 
+              type="password" id="password" value={form.password} 
+              onChange={(e) => setForm({...form, password: e.target.value})} required 
             />
           </div>
           
