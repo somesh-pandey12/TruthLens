@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { loginUser, googleAuth } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import './Auth.css';
 
-const GOOGLE_CLIENT_ID = 'Y658229660985-260ldjoasd02ljl9s5o7s20vj14pgatr.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '658229660985-260ldjoasd02ljl9s5o7s20vj14pgatr.apps.googleusercontent.com';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -15,9 +15,22 @@ export default function Login() {
   const navigate = useNavigate();
   const googleBtnRef = useRef(null);
 
+  const handleGoogleResponse = useCallback(async (response) => {
+    setGoogleLoading(true);
+    setError('');
+    try {
+      const res = await googleAuth({ credential: response.credential });
+      login(res.data.token, res.data.name, res.data.email, res.data.avatar);
+      navigate('/analyze');
+    } catch {
+      setError('Google sign-in failed. Please try again.');
+    }
+    setGoogleLoading(false);
+  }, [login, navigate]);
+
   useEffect(() => {
     const initGoogle = () => {
-      if (window.google?.accounts?.id) {
+      if (window.google?.accounts?.id && googleBtnRef.current) {
         window.google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
           callback: handleGoogleResponse,
@@ -26,7 +39,7 @@ export default function Login() {
         window.google.accounts.id.renderButton(googleBtnRef.current, {
           theme: 'filled_black',
           size: 'large',
-          width: '100%',
+          width: googleBtnRef.current.offsetWidth,
           text: 'signin_with',
           shape: 'rectangular',
         });
@@ -41,20 +54,7 @@ export default function Login() {
       }, 200);
       return () => clearInterval(interval);
     }
-  }, []);
-
-  const handleGoogleResponse = async (response) => {
-    setGoogleLoading(true);
-    setError('');
-    try {
-      const res = await googleAuth({ credential: response.credential });
-      login(res.data.token, res.data.name, res.data.email, res.data.avatar);
-      navigate('/analyze');
-    } catch {
-      setError('Google sign-in failed. Please try again.');
-    }
-    setGoogleLoading(false);
-  };
+  }, [handleGoogleResponse]);
 
   const handleSubmit = async (e) => {
     e?.preventDefault();
@@ -87,44 +87,44 @@ export default function Login() {
         <h1 className="auth-title">Welcome back</h1>
         <p className="auth-sub">Sign in to your account to continue</p>
 
-        {/* Google Sign In */}
         <div className="google-btn-wrapper" ref={googleBtnRef} />
-        {googleLoading && <p style={{textAlign:'center',fontSize:'13px',color:'var(--text-muted)'}}>Signing in with Google…</p>}
-
-        <div className="divider">or continue with email</div>
-
-        {error && (
-          <div className="auth-error">
-            <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-              <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            {error}
-          </div>
+        {googleLoading && (
+          <p style={{textAlign:'center',fontSize:'13px',color:'var(--text-muted)'}}>
+            Signing in with Google…
+          </p>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="input-group">
-            <label className="input-label">Email address</label>
-            <input className="input" type="email" placeholder="you@example.com"
-              value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input 
+              type="email" 
+              id="email" 
+              value={form.email} 
+              onChange={(e) => setForm({...form, email: e.target.value})} 
+              required 
+            />
           </div>
-          <div className="input-group">
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}}>
-              <label className="input-label" style={{marginBottom:0}}>Password</label>
-              <a href="#" className="auth-link" style={{fontSize:'12px'}}>Forgot password?</a>
-            </div>
-            <input className="input" type="password" placeholder="Enter your password"
-              value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input 
+              type="password" 
+              id="password" 
+              value={form.password} 
+              onChange={(e) => setForm({...form, password: e.target.value})} 
+              required 
+            />
           </div>
-
-          <button type="submit" className="btn btn-primary btn-full" style={{padding:'13px',marginTop:'4px'}} disabled={loading}>
-            {loading ? <><span className="spinner" /> Signing in…</> : 'Sign in'}
+          
+          {error && <p className="error-msg">{error}</p>}
+          
+          <button type="submit" className="auth-submit" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
         <p className="auth-footer">
-          Don't have an account? <Link to="/register" className="auth-link">Create one free</Link>
+          Don't have an account? <Link to="/register">Sign up</Link>
         </p>
       </div>
     </div>

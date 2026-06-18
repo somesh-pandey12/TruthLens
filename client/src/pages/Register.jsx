@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { registerUser, googleAuth } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import './Auth.css';
 
-const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID'; // Replace with your actual client ID
+const GOOGLE_CLIENT_ID = '658229660985-260ldjoasd02ljl9s5o7s20vj14pgatr.apps.googleusercontent.com';
 
 export default function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
@@ -15,9 +15,21 @@ export default function Register() {
   const navigate = useNavigate();
   const googleBtnRef = useRef(null);
 
+  const handleGoogleResponse = useCallback(async (response) => {
+    setGoogleLoading(true); setError('');
+    try {
+      const res = await googleAuth({ credential: response.credential });
+      login(res.data.token, res.data.name, res.data.email, res.data.avatar);
+      navigate('/analyze');
+    } catch {
+      setError('Google sign-up failed. Please try again.');
+    }
+    setGoogleLoading(false);
+  }, [login, navigate]);
+
   useEffect(() => {
     const initGoogle = () => {
-      if (window.google?.accounts?.id) {
+      if (window.google?.accounts?.id && googleBtnRef.current) {
         window.google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
           callback: handleGoogleResponse,
@@ -25,7 +37,7 @@ export default function Register() {
         window.google.accounts.id.renderButton(googleBtnRef.current, {
           theme: 'filled_black',
           size: 'large',
-          width: '100%',
+          width: googleBtnRef.current.offsetWidth,
           text: 'signup_with',
           shape: 'rectangular',
         });
@@ -40,19 +52,7 @@ export default function Register() {
       }, 200);
       return () => clearInterval(interval);
     }
-  }, []);
-
-  const handleGoogleResponse = async (response) => {
-    setGoogleLoading(true); setError('');
-    try {
-      const res = await googleAuth({ credential: response.credential });
-      login(res.data.token, res.data.name, res.data.email, res.data.avatar);
-      navigate('/analyze');
-    } catch {
-      setError('Google sign-up failed. Please try again.');
-    }
-    setGoogleLoading(false);
-  };
+  }, [handleGoogleResponse]);
 
   const handleSubmit = async (e) => {
     e?.preventDefault();
@@ -69,7 +69,9 @@ export default function Register() {
     setLoading(false);
   };
 
-  const strength = form.password.length === 0 ? 0 : form.password.length < 6 ? 1 : form.password.length < 10 ? 2 : 3;
+  const strength = form.password.length === 0 ? 0
+    : form.password.length < 6 ? 1
+    : form.password.length < 10 ? 2 : 3;
   const strengthLabel = ['', 'Weak', 'Good', 'Strong'];
   const strengthColor = ['', '#ef4444', '#f59e0b', '#10b981'];
 
@@ -90,9 +92,12 @@ export default function Register() {
         <h1 className="auth-title">Create your account</h1>
         <p className="auth-sub">Start verifying news for free — no credit card needed</p>
 
-        {/* Google Sign Up */}
         <div className="google-btn-wrapper" ref={googleBtnRef} />
-        {googleLoading && <p style={{textAlign:'center',fontSize:'13px',color:'var(--text-muted)'}}>Signing up with Google…</p>}
+        {googleLoading && (
+          <p style={{textAlign:'center',fontSize:'13px',color:'var(--text-muted)'}}>
+            Signing up with Google…
+          </p>
+        )}
 
         <div className="divider">or register with email</div>
 
@@ -110,30 +115,42 @@ export default function Register() {
           <div className="input-group">
             <label className="input-label">Full name</label>
             <input className="input" placeholder="John Doe"
-              value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              autoComplete="name"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })} />
           </div>
           <div className="input-group">
             <label className="input-label">Email address</label>
             <input className="input" type="email" placeholder="you@example.com"
-              value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              autoComplete="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </div>
           <div className="input-group">
             <label className="input-label">Password</label>
             <input className="input" type="password" placeholder="Min. 6 characters"
-              value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+              autoComplete="new-password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })} />
             {form.password.length > 0 && (
               <div style={{marginTop:'8px'}}>
                 <div style={{display:'flex',gap:'4px',marginBottom:'4px'}}>
                   {[1,2,3].map(i => (
-                    <div key={i} style={{flex:1,height:'3px',borderRadius:'2px',background: i <= strength ? strengthColor[strength] : 'var(--border)'}} />
+                    <div key={i} style={{
+                      flex:1, height:'3px', borderRadius:'2px',
+                      background: i <= strength ? strengthColor[strength] : 'var(--border)'
+                    }} />
                   ))}
                 </div>
-                <span style={{fontSize:'12px',color:strengthColor[strength]}}>{strengthLabel[strength]}</span>
+                <span style={{fontSize:'12px', color: strengthColor[strength]}}>
+                  {strengthLabel[strength]}
+                </span>
               </div>
             )}
           </div>
 
-          <button type="submit" className="btn btn-primary btn-full" style={{padding:'13px',marginTop:'4px'}} disabled={loading}>
+          <button type="submit" className="btn btn-primary btn-full"
+            style={{padding:'13px',marginTop:'4px'}} disabled={loading}>
             {loading ? <><span className="spinner" /> Creating account…</> : 'Create account'}
           </button>
         </form>
