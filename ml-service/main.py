@@ -10,7 +10,6 @@ from models.classifier import load_model, analyze_text
 
 app = FastAPI()
 
-# CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
@@ -22,6 +21,7 @@ class TextInput(BaseModel):
     text: str
     url: str = ""
 
+# Model variable
 model = None
 
 def get_model():
@@ -34,8 +34,9 @@ def get_model():
 async def analyze(input: TextInput):
     try:
         clf = get_model()
+        
         result = analyze_text(clf, input.text, input.url)
-
+        
         gc.collect()
         return result
     except Exception as e:
@@ -45,7 +46,6 @@ async def analyze(input: TextInput):
 async def health():
     return {"status": "ok"}
 
-# RENDER PORT BINDING: 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
