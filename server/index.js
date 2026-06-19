@@ -10,8 +10,7 @@ connectDB();
 const app = express();
 
 app.use(helmet({
-  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
-  crossOriginEmbedderPolicy: false
+  crossOriginOpenerPolicy: { policy: "same-origin" } 
 }));
 
 const corsOptions = {
