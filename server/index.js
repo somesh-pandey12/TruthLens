@@ -9,20 +9,16 @@ connectDB();
 
 const app = express();
 
-// 1. Security Headers:
+// 1. Security Headers (Required for OAuth/Popups)
 app.use(helmet({
   crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
   crossOriginEmbedderPolicy: false 
 }));
 
 // 2. CORS Configuration
-const clientOrigin = process.env.CLIENT_URL;
-if (!clientOrigin) {
-  console.warn("WARNING: CLIENT_URL is not set in environment variables!");
-}
-
+// .env mein CLIENT_URL set karna na bhoolein: e.g., https://truth-lens-eight-ochre.vercel.app
 const corsOptions = {
-  origin: clientOrigin || "http://localhost:3000",
+  origin: process.env.CLIENT_URL || "http://localhost:3000",
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true 
 };
@@ -32,7 +28,7 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// 4. Trailing Slash Fix:
+// 4. Trailing Slash Fix (Reduces 404/405 errors)
 app.use((req, res, next) => {
   if (req.path.slice(-1) === '/' && req.path.length > 1) {
     const safePath = req.path.slice(0, -1);
