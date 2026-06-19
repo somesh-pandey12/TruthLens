@@ -36,8 +36,8 @@ TruthLens is an advanced AI/NLP-driven platform designed to analyze, classify, a
 
 ## 🚀 Deployment
 
-- **Frontend:** Hosted on [Vercel](#)
-- **Backend & ML API:** Hosted on [Render](#)
+- **Frontend:** Hosted on [https://truth-lens-eight-ochre.vercel.app](#)
+- **Backend & ML API:** Hosted on [https://truthlens-1-qnnw.onrender.com](#)
 
 ---
 
