@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { analyzeText } from '../utils/api';
+import axios from 'axios';
 import ResultCard from '../components/ResultCard';
 import './Analyze.css';
+
+const API_BASE_URL = 'https://truthlens-iu5p.onrender.com';
 
 const examples = [
   "Scientists discover that drinking coffee every morning extends life by 20 years, according to a new Harvard study.",
@@ -23,18 +25,29 @@ export default function Analyze() {
   };
 
   const handleSubmit = async () => {
+    // Basic validation
     if (!text.trim()) { setError('Please enter some text to analyze.'); return; }
-    if (text.trim().length < 20) { setError('Please enter at least 20 characters for accurate analysis.'); return; }
+    if (text.trim().length < 20) { setError('Please enter at least 20 characters.'); return; }
+    
     setError('');
     setResult(null);
     setLoading(true);
+
     try {
-      const res = await analyzeText({ text, url });
+     
+      const res = await axios.post(`${API_BASE_URL}/api/analyze`, { 
+        text: text, 
+        url: url 
+      });
+      
       setResult(res.data);
     } catch (err) {
-      setError('Analysis failed. Make sure all services are running on ports 5000 and 8000.');
+      console.error("API Error:", err);
+      setError('Analysis failed. Check if backend is running or try again.');
+    } finally {
+    
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const loadExample = (ex) => {
@@ -53,7 +66,6 @@ export default function Analyze() {
         </div>
 
         <div className="analyze-layout">
-          {/* Input Panel */}
           <div className="input-panel card">
             <div className="panel-header">
               <span className="panel-title">Content to Analyze</span>
@@ -77,32 +89,18 @@ export default function Analyze() {
               />
             </div>
 
-            {error && <p className="error-text">{error}</p>}
+            {error && <p className="error-text" style={{color: 'red', marginTop: '10px'}}>{error}</p>}
 
             <button
               className="btn btn-primary btn-full"
-              style={{marginTop: '16px', padding: '14px'}}
+              style={{marginTop: '16px', padding: '14px', cursor: loading ? 'not-allowed' : 'pointer'}}
               onClick={handleSubmit}
               disabled={loading}
             >
-              {loading ? (
-                <>
-                  <span className="spinner" />
-                  Analyzing with AI...
-                </>
-              ) : (
-                <>
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-                    <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
-                    <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                  Analyze Now
-                </>
-              )}
+              {loading ? "Analyzing with AI..." : "Analyze Now"}
             </button>
           </div>
 
-          {/* Sidebar */}
           <div className="analyze-sidebar">
             <div className="card">
               <p className="panel-title" style={{marginBottom:'12px'}}>Try an example</p>
@@ -114,16 +112,6 @@ export default function Analyze() {
                   </button>
                 ))}
               </div>
-            </div>
-
-            <div className="card tips-card">
-              <p className="panel-title" style={{marginBottom:'12px'}}>For best results</p>
-              <ul className="tips-list">
-                <li>Use full articles (100+ words) for higher accuracy</li>
-                <li>Include the original source URL when possible</li>
-                <li>Works with English language content only</li>
-                <li>Longer text = more accurate verdict</li>
-              </ul>
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { getHistory } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
+import HistoryTable from '../components/HistoryTable';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -10,16 +11,23 @@ export default function Dashboard() {
   const { user } = useAuth();
 
   useEffect(() => {
-    getHistory()
-      .then(res => setHistory(res.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    const fetchHistory = async () => {
+      try {
+        const res = await getHistory();
+        setHistory(res.data || []);
+      } catch (err) {
+        console.error("Error fetching history:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHistory();
   }, []);
 
-  const totalReal = history.filter(h => h.verdict === 'REAL').length;
-  const totalFake = history.filter(h => h.verdict === 'FAKE').length;
+  const totalReal = history.filter(h => h?.verdict === 'REAL').length;
+  const totalFake = history.filter(h => h?.verdict === 'FAKE').length;
   const avgScore = history.length
-    ? Math.round(history.reduce((a, b) => a + b.reliabilityScore, 0) / history.length)
+    ? Math.round(history.reduce((a, b) => a + (b.reliabilityScore || 0), 0) / history.length)
     : 0;
 
   return (
@@ -27,21 +35,13 @@ export default function Dashboard() {
       <div className="dashboard-inner">
         <div className="dashboard-header">
           <div>
-            <h1 className="dashboard-title">
-              Welcome back, {user?.name?.split(' ')[0]} 👋
-            </h1>
+            <h1 className="dashboard-title">Welcome back, {user?.name?.split(' ')[0] || 'User'} 👋</h1>
             <p className="dashboard-sub">Here's a summary of your fact-checking activity.</p>
           </div>
-          <Link to="/analyze" className="btn btn-primary">
-            <svg width="15" height="15" fill="none" viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
-              <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            New Analysis
-          </Link>
+          <Link to="/analyze" className="btn btn-primary">New Analysis</Link>
         </div>
 
-        {/* Stats */}
+        {/* Stats Section */}
         <div className="stats-row">
           {[
             { label: 'Total Analyzed', value: history.length, color: '#3b82f6' },
@@ -56,46 +56,25 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* History */}
         <div className="history-section">
           <h2 className="history-title">Recent Analyses</h2>
 
           {loading ? (
-            <div className="loading-state">
-              <span className="spinner" style={{borderColor:'var(--border-hover)',borderTopColor:'var(--blue)'}} />
-              <span>Loading your history…</span>
-            </div>
+            <div className="loading-state">Loading your history...</div>
           ) : history.length === 0 ? (
             <div className="empty-state card">
-              <div className="empty-icon">🔍</div>
               <h3>No analyses yet</h3>
-              <p>Start fact-checking news articles and your history will appear here.</p>
-              <Link to="/analyze" className="btn btn-primary" style={{marginTop:'16px'}}>Analyze your first article</Link>
+              <p>Start fact-checking to see your results here.</p>
             </div>
           ) : (
             <div className="history-list">
-              {history.map((item) => {
-                const isReal = item.verdict === 'REAL';
-                const isFake = item.verdict === 'FAKE';
-                return (
-                  <div key={item._id} className="history-item card">
-                    <div className="history-item-left">
-                      <div className={`history-dot ${isReal ? 'dot-green' : isFake ? 'dot-red' : 'dot-yellow'}`} />
-                      <div>
-                        <p className="history-text">{item.inputText?.substring(0, 120)}…</p>
-                        <div className="history-meta">
-                          <span className={`badge ${isReal ? 'badge-green' : isFake ? 'badge-red' : 'badge-yellow'}`}>
-                            {item.verdict}
-                          </span>
-                          <span className="history-score">Score: {item.reliabilityScore}%</span>
-                          {item.sentiment && <span className="history-sentiment">{item.sentiment}</span>}
-                          <span className="history-date">{new Date(item.createdAt).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'})}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {}
+              {history.map((item) => (
+                <div key={item._id} className="history-item card">
+                  <p>{item.inputText?.substring(0, 100)}...</p>
+                  <span>Verdict: <strong>{item.verdict}</strong></span>
+                </div>
+              ))}
             </div>
           )}
         </div>

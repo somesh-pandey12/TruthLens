@@ -1,4 +1,5 @@
 import './ResultCard.css';
+import ScoreGauge from './ScoreGauge';
 
 export default function ResultCard({ result }) {
   const isReal = result.verdict === 'REAL';
@@ -19,12 +20,18 @@ export default function ResultCard({ result }) {
         <span className={`verdict-badge ${verdictClass}`}>{verdictLabel}</span>
       </div>
 
-      {/* Score Bar */}
+      {}
       <div className="score-section">
         <div className="score-top">
           <span className="score-label">Reliability Score</span>
           <span className="score-value" style={{ color: scoreColor }}>{score}%</span>
         </div>
+        
+        {}
+        <div style={{ margin: '15px 0' }}>
+            <ScoreGauge score={score} />
+        </div>
+
         <div className="score-track">
           <div
             className="score-fill"
