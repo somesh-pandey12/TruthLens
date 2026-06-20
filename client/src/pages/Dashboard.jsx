@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { getHistory } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import HistoryTable from '../components/HistoryTable';
+//import HistoryTable from '../components/HistoryTable';
 import './Dashboard.css';
 
 export default function Dashboard() {
