@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { analyzeText } from '../api'; // ✅ use api.js — not raw axios
+import { analyzeText } from '../utils/api'; // ✅ use api.js — not raw axios
 import ResultCard from '../components/ResultCard';
 import './Analyze.css';
 
