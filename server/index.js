@@ -9,48 +9,35 @@ connectDB();
 
 const app = express();
 
-// 1. Security Headers (Required for OAuth/Popups)
+// 1. Security Headers 
 app.use(helmet({
   crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
   crossOriginEmbedderPolicy: false 
 }));
 
 // 2. CORS Configuration
-// .env mein CLIENT_URL set karna na bhoolein: e.g., https://truth-lens-eight-ochre.vercel.app
 const corsOptions = {
-  origin: process.env.CLIENT_URL || "http://localhost:3000",
+  origin: process.env.CLIENT_URL || "https://truth-lens-eight-ochre.vercel.app",
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true 
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors(corsOptions));
-
-// 3. Body Parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// 4. Trailing Slash Fix (Reduces 404/405 errors)
-app.use((req, res, next) => {
-  if (req.path.slice(-1) === '/' && req.path.length > 1) {
-    const safePath = req.path.slice(0, -1);
-    res.redirect(301, safePath);
-  } else {
-    next();
-  }
-});
-
-// 5. Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/analysis', require('./routes/analysis'));
 
-// 6. Health Check
+// 5. Health Check
 app.get('/health', (req, res) => res.status(200).json({ status: 'Server is healthy' }));
 
-// 7. Global Error Handling
+// 6. Global Error Handling 
 app.use((err, req, res, next) => {
   console.error("Global Error Handler:", err.stack);
   res.status(err.status || 500).json({ 
     message: err.message || 'Something went wrong!', 
-    error: process.env.NODE_ENV === 'development' ? err : {} 
+    error: process.env.NODE_ENV === 'development' ? err.message : {} 
   });
 });
 
