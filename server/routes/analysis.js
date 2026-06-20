@@ -6,9 +6,8 @@ const Analysis = require('../models/Analysis');
 const auth = require('../middleware/authMiddleware');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' }); // ✅ fixed
 
-// POST /api/analysis/analyze
 router.post('/analyze', async (req, res) => {
   try {
     const { text, url } = req.body;
@@ -75,7 +74,6 @@ router.post('/analyze', async (req, res) => {
   }
 });
 
-// GET /api/analysis/history
 router.get('/history', auth, async (req, res) => {
   try {
     const history = await Analysis.find({ user: req.user.id })
