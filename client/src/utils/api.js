@@ -57,7 +57,7 @@ export const registerUser = (data) => API.post('/api/auth/register', data);
 export const googleAuth   = (data) => API.post('/api/auth/google', data);
 
 // Analysis APIs
-export const analyzeText  = (data) => API.post('/api/analysis/analyze', data);
+export const analyzeText = (data) => API.post('/api/analysis/analyze', data);
 export const getHistory   = ()     => API.get('/api/analysis/history');
 
 export default API;
