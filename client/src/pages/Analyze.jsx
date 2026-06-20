@@ -38,8 +38,8 @@ export default function Analyze() {
       console.error("API Error:", err);
 
       if (err.code === 'ECONNABORTED') {
-        setError('Request timed out. The server is waking up — please try again in 30 seconds.');
-      } else if (err.response?.status === 503) {
+  setError('Server is waking up (Render free tier). Please wait 30 seconds and try again.');
+}else if (err.response?.status === 503) {
         setError('ML service is unavailable. Please try again later.');
       } else if (err.response?.status === 400) {
         setError(err.response.data?.message || 'Invalid input. Please check your text.');
