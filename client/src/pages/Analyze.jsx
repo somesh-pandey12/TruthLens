@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import axios from 'axios';
+import { analyzeText } from '../api'; // ✅ use api.js — not raw axios
 import ResultCard from '../components/ResultCard';
 import './Analyze.css';
-
-const API_BASE_URL = 'https://truthlens-iu5p.onrender.com';
 
 const examples = [
   "Scientists discover that drinking coffee every morning extends life by 20 years, according to a new Harvard study.",
@@ -25,27 +23,30 @@ export default function Analyze() {
   };
 
   const handleSubmit = async () => {
-    // Basic validation
     if (!text.trim()) { setError('Please enter some text to analyze.'); return; }
     if (text.trim().length < 20) { setError('Please enter at least 20 characters.'); return; }
-    
+
     setError('');
     setResult(null);
     setLoading(true);
 
     try {
-     
-      const res = await axios.post(`${API_BASE_URL}/api/analyze`, { 
-        text: text, 
-        url: url 
-      });
-      
+      // ✅ uses api.js → REACT_APP_API_URL → /api/analysis/analyze
+      const res = await analyzeText({ text: text.trim(), url: url || '' });
       setResult(res.data);
     } catch (err) {
       console.error("API Error:", err);
-      setError('Analysis failed. Check if backend is running or try again.');
+
+      if (err.code === 'ECONNABORTED') {
+        setError('Request timed out. The server is waking up — please try again in 30 seconds.');
+      } else if (err.response?.status === 503) {
+        setError('ML service is unavailable. Please try again later.');
+      } else if (err.response?.status === 400) {
+        setError(err.response.data?.message || 'Invalid input. Please check your text.');
+      } else {
+        setError('Analysis failed. Please try again.');
+      }
     } finally {
-    
       setLoading(false);
     }
   };
@@ -79,7 +80,7 @@ export default function Analyze() {
               onChange={handleTextChange}
             />
 
-            <div className="input-group" style={{marginTop: '12px', marginBottom: 0}}>
+            <div className="input-group" style={{ marginTop: '12px', marginBottom: 0 }}>
               <label className="input-label">Source URL (optional)</label>
               <input
                 className="input"
@@ -89,11 +90,15 @@ export default function Analyze() {
               />
             </div>
 
-            {error && <p className="error-text" style={{color: 'red', marginTop: '10px'}}>{error}</p>}
+            {error && (
+              <p className="error-text" style={{ color: 'red', marginTop: '10px' }}>
+                {error}
+              </p>
+            )}
 
             <button
               className="btn btn-primary btn-full"
-              style={{marginTop: '16px', padding: '14px', cursor: loading ? 'not-allowed' : 'pointer'}}
+              style={{ marginTop: '16px', padding: '14px', cursor: loading ? 'not-allowed' : 'pointer' }}
               onClick={handleSubmit}
               disabled={loading}
             >
@@ -103,7 +108,7 @@ export default function Analyze() {
 
           <div className="analyze-sidebar">
             <div className="card">
-              <p className="panel-title" style={{marginBottom:'12px'}}>Try an example</p>
+              <p className="panel-title" style={{ marginBottom: '12px' }}>Try an example</p>
               <div className="examples-list">
                 {examples.map((ex, i) => (
                   <button key={i} className="example-btn" onClick={() => loadExample(ex)}>
