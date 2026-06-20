@@ -6,7 +6,28 @@ const Analysis = require('../models/Analysis');
 const auth = require('../middleware/authMiddleware');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' }); // ✅ fixed
+const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+// Retry logic for 429 rate limit
+async function callGeminiWithRetry(prompt, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const geminiRes = await model.generateContent(prompt);
+      return geminiRes.response.text().trim();
+    } catch (err) {
+      const is429 = err.message?.includes('429');
+      if (is429 && i < retries - 1) {
+        const wait = (i + 1) * 3000;
+        console.log(`Rate limited. Retrying in ${wait/1000}s... (attempt ${i+1}/${retries})`);
+        await new Promise(r => setTimeout(r, wait));
+      } else if (is429) {
+        throw new Error('QUOTA_EXCEEDED');
+      } else {
+        throw err;
+      }
+    }
+  }
+}
 
 router.post('/analyze', async (req, res) => {
   try {
@@ -33,9 +54,18 @@ router.post('/analyze', async (req, res) => {
     }
     `;
 
-    const geminiRes = await model.generateContent(prompt);
-    const raw = geminiRes.response.text().trim()
-      .replace(/```json/g, '').replace(/```/g, '').trim();
+    let raw;
+    try {
+      raw = await callGeminiWithRetry(prompt);
+      raw = raw.replace(/```json/g, '').replace(/```/g, '').trim();
+    } catch (err) {
+      if (err.message === 'QUOTA_EXCEEDED') {
+        return res.status(429).json({
+          message: 'API quota exceeded. Please try again after a minute.'
+        });
+      }
+      throw err;
+    }
 
     let result;
     try {
