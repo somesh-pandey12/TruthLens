@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { analyzeText } from '../utils/api'; // ✅ use api.js — not raw axios
+import { analyzeText } from '../api';
 import ResultCard from '../components/ResultCard';
 import './Analyze.css';
 
@@ -25,37 +25,26 @@ export default function Analyze() {
   const handleSubmit = async () => {
     if (!text.trim()) { setError('Please enter some text to analyze.'); return; }
     if (text.trim().length < 20) { setError('Please enter at least 20 characters.'); return; }
-
-    setError('');
-    setResult(null);
-    setLoading(true);
-
+    setError(''); setResult(null); setLoading(true);
     try {
-      // ✅ uses api.js → REACT_APP_API_URL → /api/analysis/analyze
       const res = await analyzeText({ text: text.trim(), url: url || '' });
       setResult(res.data);
     } catch (err) {
-      console.error("API Error:", err);
-
-      if (err.code === 'ECONNABORTED') {
-  setError('Server is waking up (Render free tier). Please wait 30 seconds and try again.');
-}else if (err.response?.status === 503) {
-        setError('ML service is unavailable. Please try again later.');
-      } else if (err.response?.status === 400) {
-        setError(err.response.data?.message || 'Invalid input. Please check your text.');
-      } else {
+      if (err.response?.status === 429)
+        setError('Too many requests. Please wait a minute and try again.');
+      else if (err.response?.status === 503)
+        setError('Server is unavailable. Please try again later.');
+      else if (err.code === 'ECONNABORTED')
+        setError('Request timed out. Server is waking up — try again in 30 seconds.');
+      else
         setError('Analysis failed. Please try again.');
-      }
     } finally {
       setLoading(false);
     }
   };
 
   const loadExample = (ex) => {
-    setText(ex);
-    setCharCount(ex.length);
-    setResult(null);
-    setError('');
+    setText(ex); setCharCount(ex.length); setResult(null); setError('');
   };
 
   return (
@@ -65,47 +54,31 @@ export default function Analyze() {
           <h1 className="analyze-title">Analyze Content</h1>
           <p className="analyze-sub">Paste any news article, headline, or social media post to check its credibility.</p>
         </div>
-
         <div className="analyze-layout">
           <div className="input-panel card">
             <div className="panel-header">
               <span className="panel-title">Content to Analyze</span>
               <span className="char-count">{charCount} chars</span>
             </div>
-
             <textarea
               className="input analyze-textarea"
               placeholder="Paste news article, headline, or social media post here..."
-              value={text}
-              onChange={handleTextChange}
+              value={text} onChange={handleTextChange}
             />
-
             <div className="input-group" style={{ marginTop: '12px', marginBottom: 0 }}>
               <label className="input-label">Source URL (optional)</label>
-              <input
-                className="input"
-                placeholder="https://example.com/article"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-              />
+              <input className="input" placeholder="https://example.com/article"
+                value={url} onChange={(e) => setUrl(e.target.value)} />
             </div>
-
-            {error && (
-              <p className="error-text" style={{ color: 'red', marginTop: '10px' }}>
-                {error}
-              </p>
-            )}
-
+            {error && <p style={{ color: 'red', marginTop: '10px', fontSize: '14px' }}>{error}</p>}
+            {loading && <p style={{ color: '#888', marginTop: '8px', fontSize: '13px' }}>⏳ Analyzing... this may take up to 30 seconds.</p>}
             <button
               className="btn btn-primary btn-full"
               style={{ marginTop: '16px', padding: '14px', cursor: loading ? 'not-allowed' : 'pointer' }}
-              onClick={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? "Analyzing with AI..." : "Analyze Now"}
+              onClick={handleSubmit} disabled={loading}>
+              {loading ? 'Analyzing with AI...' : 'Analyze Now'}
             </button>
           </div>
-
           <div className="analyze-sidebar">
             <div className="card">
               <p className="panel-title" style={{ marginBottom: '12px' }}>Try an example</p>
@@ -120,7 +93,6 @@ export default function Analyze() {
             </div>
           </div>
         </div>
-
         {result && <ResultCard result={result} />}
       </div>
     </div>
