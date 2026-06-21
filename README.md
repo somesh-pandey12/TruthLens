@@ -137,7 +137,7 @@ cd client && npm start
 
 **Somesh Pandey**
 - LinkedIn: https://https://www.linkedin.com/in/somesh-pandey-536222296/
-- GitHub: https://github.com/somesh-pandey12yourusername
+- GitHub: https://github.com/somesh-pandey12
 - Email: someshpandeycil@gmail.com
 
 ---
