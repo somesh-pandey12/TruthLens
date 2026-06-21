@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { analyzeText } from '../api';
+import { analyzeText } from '../utils/api';
 import ResultCard from '../components/ResultCard';
 import './Analyze.css';
 

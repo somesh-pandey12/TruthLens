@@ -1,101 +1,86 @@
 import os
 import json
-import uvicorn
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from fastapi.middleware.cors import CORSMiddleware
-import google.generativeai as genai
+import re
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from textblob import TextBlob
+from groq import Groq
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Configure Gemini
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-gemini_model = genai.GenerativeModel("gemini-1.5-flash")
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-app = FastAPI()
+app = Flask(__name__)
+CORS(app, origins=["http://localhost:3000", "http://localhost:5000", "*"])
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://truth-lens-eight-ochre.vercel.app",
-        "http://localhost:3000",
-        "*"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@app.route("/analyze", methods=["POST"])
+def analyze():
+    data = request.get_json()
+    text = data.get("text", "")
+    url = data.get("url", "")
 
-class TextInput(BaseModel):
-    text: str
-    url: str = ""
+    if not text or len(text.strip()) < 10:
+        return jsonify({"error": "Text too short"}), 400
 
-def analyze_with_gemini(text: str, url: str = "") -> dict:
-    prompt = f"""
-    You are a fake news detection expert. Analyze the following news content for credibility.
+    clean = re.sub(r'http\S+', '', text).strip()
+    blob = TextBlob(clean)
+    sentiment = "POSITIVE" if blob.sentiment.polarity > 0 \
+                else "NEGATIVE" if blob.sentiment.polarity < 0 \
+                else "NEUTRAL"
+    subjectivity = round(blob.sentiment.subjectivity * 100, 2)
 
-    News Content: {text}
-    Source URL: {url if url else "Not provided"}
+    prompt = f"""You are a fake news detection expert. Analyze this news content.
 
-    Respond ONLY with a valid JSON object using exactly these fields:
-    {{
-        "verdict": "Real" or "Fake" or "Uncertain",
-        "credibilityScore": <number 0-100>,
-        "confidence": <number 0-100>,
-        "sentiment": "Positive" or "Negative" or "Neutral",
-        "bias": "Left" or "Right" or "Center" or "Unknown",
-        "reasons": ["reason 1", "reason 2", "reason 3"],
-        "summary": "<one sentence summary of the content>",
-        "redFlags": ["flag1", "flag2"] 
-    }}
+Content: {clean[:1000]}
+URL: {url or 'Not provided'}
+Sentiment: {sentiment}
+Subjectivity: {subjectivity}%
 
-    No extra text, no markdown, only raw JSON.
-    """
+Respond ONLY with valid JSON, no markdown:
+{{
+  "verdict": "REAL" or "FAKE" or "UNCERTAIN",
+  "reliabilityScore": <number 0-100>,
+  "confidence": <number 0-100>,
+  "explanation": "<one sentence>",
+  "redFlags": ["flag1", "flag2"]
+}}"""
 
     try:
-        response = gemini_model.generate_content(prompt)
-        raw = response.text.strip()
-
-        # Strip markdown code fences if present
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile", # ✅ updated
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+            max_tokens=500,
+        )
+        raw = response.choices[0].message.content.strip()
         if raw.startswith("```"):
             raw = raw.split("```")[1]
             if raw.startswith("json"):
                 raw = raw[4:]
         raw = raw.strip()
-
         result = json.loads(raw)
-        return result
+
+        return jsonify({
+            "verdict": result.get("verdict", "UNCERTAIN"),
+            "reliabilityScore": result.get("reliabilityScore", 50),
+            "confidence": result.get("confidence", 50),
+            "sentiment": sentiment,
+            "subjectivity": subjectivity,
+            "explanation": result.get("explanation", ""),
+            "redFlags": result.get("redFlags", [])
+        })
 
     except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Gemini returned invalid JSON")
+        return jsonify({"error": "AI returned invalid response"}), 500
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Gemini API error: {str(e)}")
+        print(f"ERROR: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
-
-@app.post("/analyze")
-async def analyze(input: TextInput):
-    if not input.text or len(input.text.strip()) < 10:
-        raise HTTPException(status_code=400, detail="Text too short to analyze")
-    try:
-        result = analyze_with_gemini(input.text, input.url)
-        return result
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.get("/health")
-async def health():
-    return {
-        "status": "ok",
-        "model": "gemini-1.5-flash",
-        "service": "TruthLens ML API"
-    }
-
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok", "model": "llama-3.3-70b-versatile"}) # ✅ updated
 
 if __name__ == "__main__":
-    import uvicorn
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
+    app.run(host="0.0.0.0", port=port, debug=False)

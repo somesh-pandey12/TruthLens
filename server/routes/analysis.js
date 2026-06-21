@@ -1,57 +1,35 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const axios = require('axios');
 const Analysis = require('../models/Analysis');
 const auth = require('../middleware/authMiddleware');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
-async function callGemini(prompt, retries = 3) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const res = await model.generateContent(prompt);
-      return res.response.text().trim();
-    } catch (err) {
-      if (err.message?.includes('429') && i < retries - 1) {
-        await new Promise(r => setTimeout(r, (i + 1) * 3000));
-      } else if (err.message?.includes('429')) {
-        throw new Error('QUOTA_EXCEEDED');
-      } else {
-        throw err;
-      }
-    }
-  }
-}
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:8000';
 
 router.post('/analyze', async (req, res) => {
   try {
     const { text, url } = req.body;
-    if (!text || text.trim().length < 10)
+
+    if (!text || text.trim().length < 10) {
       return res.status(400).json({ message: 'Text is too short to analyze' });
-
-    const prompt = `You are a fake news detection expert. Analyze this news content.
-Content: ${text.trim().slice(0, 1000)}
-URL: ${url || 'Not provided'}
-Respond ONLY with valid JSON, no markdown:
-{"verdict":"REAL or FAKE or UNCERTAIN","reliabilityScore":0-100,"confidence":0-100,"sentiment":"POSITIVE or NEGATIVE or NEUTRAL","subjectivity":0-100,"explanation":"one sentence"}`;
-
-    let raw;
-    try {
-      raw = await callGemini(prompt);
-      raw = raw.replace(/```json/g, '').replace(/```/g, '').trim();
-    } catch (err) {
-      if (err.message === 'QUOTA_EXCEEDED')
-        return res.status(429).json({ message: 'Quota exceeded. Try again in a minute.' });
-      throw err;
     }
 
     let result;
     try {
-      result = JSON.parse(raw);
-    } catch {
-      return res.status(500).json({ message: 'AI returned invalid response. Try again.' });
+      const mlRes = await axios.post(
+        `${ML_SERVICE_URL}/analyze`,
+        { text: text.trim(), url: url || '' },
+        { timeout: 60000 }
+      );
+      result = mlRes.data;
+    } catch (mlErr) {
+      console.error('ML Service Error:', mlErr.message);
+      if (mlErr.code === 'ECONNREFUSED')
+        return res.status(503).json({ message: 'ML service not running. Start Python service.' });
+      if (mlErr.response?.status === 429)
+        return res.status(429).json({ message: 'Gemini quota exceeded. Try again in a minute.' });
+      return res.status(500).json({ message: 'ML service error', error: mlErr.message });
     }
 
     const authHeader = req.headers.authorization;
@@ -77,7 +55,7 @@ Respond ONLY with valid JSON, no markdown:
     return res.json(result);
   } catch (err) {
     console.error('Analyze error:', err.message);
-    return res.status(500).json({ message: 'Analysis failed', error: err.message });
+    return res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 

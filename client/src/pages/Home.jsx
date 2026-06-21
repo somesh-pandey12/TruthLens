@@ -3,68 +3,39 @@ import './Home.css';
 
 const features = [
   {
-    icon: (
-      <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
-        <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-        <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-    title: 'Transformer AI Model',
-    desc: 'Built on RoBERTa, trained on thousands of verified and fake news samples for high-accuracy classification.',
+    icon: '🧠',
+    title: 'LLM-Powered Analysis',
+    desc: 'Built on Llama 3.3 70B via Groq — analyzes tone, structure, and credibility signals in milliseconds.',
     color: '#3b82f6',
   },
   {
-    icon: (
-      <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5"/>
-        <path d="M12 8v4l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-    ),
-    title: 'Instant Analysis',
-    desc: 'Get a credibility score, sentiment breakdown, and linguistic insights in under 3 seconds.',
+    icon: '⚡',
+    title: 'Instant Results',
+    desc: 'Get credibility score, sentiment breakdown, and red flags in under 3 seconds.',
     color: '#10b981',
   },
   {
-    icon: (
-      <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
-        <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" stroke="currentColor" strokeWidth="1.5"/>
-      </svg>
-    ),
+    icon: '📊',
     title: 'Reliability Score',
-    desc: 'Every article gets a 0–100 credibility rating with detailed reasoning behind the verdict.',
+    desc: 'Every article gets a 0–100 credibility rating with detailed AI reasoning behind the verdict.',
     color: '#f59e0b',
   },
   {
-    icon: (
-      <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
-        <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="1.5"/>
-        <path d="M3 9h18M9 21V9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-    ),
+    icon: '📁',
     title: 'History Dashboard',
-    desc: 'Track all your past analyses, spot patterns, and review previous verdicts anytime.',
+    desc: 'Track all past analyses, spot patterns, and review previous verdicts anytime.',
     color: '#8b5cf6',
   },
   {
-    icon: (
-      <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
-        <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" strokeWidth="1.5"/>
-        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" strokeWidth="1.5"/>
-      </svg>
-    ),
+    icon: '🔍',
     title: 'NLP Insights',
-    desc: 'Sentiment analysis, subjectivity detection, and linguistic pattern recognition in one place.',
+    desc: 'Sentiment analysis, subjectivity detection, and linguistic pattern recognition.',
     color: '#ec4899',
   },
   {
-    icon: (
-      <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-      </svg>
-    ),
+    icon: '🔒',
     title: 'Secure & Private',
-    desc: 'Your analyzed content is never stored without consent. Google OAuth for safe authentication.',
+    desc: 'Google OAuth authentication. Your content is never stored without consent.',
     color: '#14b8a6',
   },
 ];
@@ -74,6 +45,12 @@ const stats = [
   { value: '<3s', label: 'Analysis time' },
   { value: '50K+', label: 'Articles analyzed' },
   { value: 'Free', label: 'To get started' },
+];
+
+const steps = [
+  { num: '01', title: 'Paste your content', desc: 'Copy any news article, headline, or social media post.' },
+  { num: '02', title: 'AI analyzes it', desc: 'Our LLM model checks credibility, tone, and red flags instantly.' },
+  { num: '03', title: 'Get your verdict', desc: 'Receive a detailed report with score, sentiment, and explanation.' },
 ];
 
 export default function Home() {
@@ -90,21 +67,15 @@ export default function Home() {
           <span className="hero-accent">Find the truth.</span>
         </h1>
         <p className="hero-subtitle">
-          TruthLens uses transformer AI and NLP to instantly verify news articles,
+          VerifyAI uses advanced LLM and NLP to instantly verify news articles,
           headlines, and social media content — giving you a credibility score you can trust.
         </p>
         <div className="hero-actions">
           <Link to="/analyze" className="btn btn-primary btn-lg">
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
-              <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            Analyze Now — It's Free
+            🔍 Analyze Now — It's Free
           </Link>
           <Link to="/register" className="btn btn-outline btn-lg">Create Account</Link>
         </div>
-
-        {/* Stats */}
         <div className="hero-stats">
           {stats.map((s) => (
             <div key={s.label} className="hero-stat">
@@ -112,6 +83,25 @@ export default function Home() {
               <span className="hero-stat-label">{s.label}</span>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="how-section">
+        <div className="section-inner">
+          <div className="section-header">
+            <p className="section-eyebrow">How it works</p>
+            <h2 className="section-title">Fact-check in 3 simple steps</h2>
+          </div>
+          <div className="steps-grid">
+            {steps.map((s) => (
+              <div key={s.num} className="step-card">
+                <span className="step-num">{s.num}</span>
+                <h3 className="step-title">{s.title}</h3>
+                <p className="step-desc">{s.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -125,12 +115,24 @@ export default function Home() {
           <div className="features-grid">
             {features.map((f) => (
               <div key={f.title} className="feature-card">
-                <div className="feature-icon" style={{ color: f.color, background: `${f.color}18` }}>
-                  {f.icon}
+                <div className="feature-icon" style={{ background: `${f.color}18` }}>
+                  <span style={{ fontSize: '22px' }}>{f.icon}</span>
                 </div>
                 <h3 className="feature-title">{f.title}</h3>
                 <p className="feature-desc">{f.desc}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Tech Stack Badge */}
+      <section className="tech-section">
+        <div className="section-inner">
+          <p className="section-eyebrow" style={{ textAlign: 'center' }}>Built with</p>
+          <div className="tech-badges">
+            {['React', 'Node.js', 'Python', 'Flask', 'MongoDB', 'Groq LLM', 'Llama 3.3', 'JWT Auth'].map(t => (
+              <span key={t} className="tech-badge">{t}</span>
             ))}
           </div>
         </div>

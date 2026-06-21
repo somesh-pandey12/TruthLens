@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Analyze from './pages/Analyze';
@@ -9,11 +10,24 @@ import { AuthProvider } from './context/AuthContext';
 import './App.css';
 
 function App() {
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
   return (
     <AuthProvider>
       <Router>
         <div className="app-root">
-          <Navbar />
+          <Navbar toggleTheme={toggleTheme} theme={theme} />
           <main className="main-content">
             <Routes>
               <Route path="/" element={<Home />} />

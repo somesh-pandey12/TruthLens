@@ -18,7 +18,7 @@ app.use(helmet({
 // 2. CORS Configuration
 const allowedOrigins = [
   "https://truth-lens-eight-ochre.vercel.app",
-  "http://localhost:3000",
+  "http://localhost:3000", // ✅ local frontend
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
