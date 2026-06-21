@@ -131,23 +131,12 @@ cd server && node index.js
 # Terminal 3 - Frontend
 cd client && npm start
 ```
-
 ---
-
-## 📸 Screenshots
-
-> Add screenshots here after taking them
-
----
-
 ## 👨‍💻 Author
 
-**Your Name**
-- LinkedIn: [linkedin.com/in/yourprofile](https://linkedin.com/in/yourprofile)
-- GitHub: [github.com/yourusername](https://github.com/yourusername)
-- Email: your@email.com
+**Somesh Pandey**
+- LinkedIn: https://https://www.linkedin.com/in/somesh-pandey-536222296/
+- GitHub: https://github.com/somesh-pandey12yourusername
+- Email: someshpandeycil@gmail.com
 
 ---
-
-## 📄 License
-MIT License

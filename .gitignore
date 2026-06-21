@@ -1,7 +1,28 @@
+# Dependencies
 node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment files
 .env
-__pycache__/
-venv/
+client/.env
+server/.env
+ml-service/.env
+
+# Python
+ml-service/venv/
+ml-service/__pycache__/
+ml-service/models/__pycache__/
 *.pyc
+*.pyo
+
+# Build
+client/build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
 .DS_Store
-build/
+Thumbs.db
