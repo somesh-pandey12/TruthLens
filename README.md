@@ -9,8 +9,9 @@
 > A full-stack AI application that detects fake news using LLM (Llama 3.3 70B via Groq) and NLP analysis.
 
 ## 🔗 Live Demo
-- **Frontend:** [truth-lens-eight-ochre.vercel.app](https://truth-lens-eight-ochre.vercel.app)
-- **Backend API:** [truthlens-iu5p.onrender.com](https://truthlens-iu5p.onrender.com)
+- **Frontend:** [https://truth-lens-ten-iota.vercel.app]
+- **Backend API:** [https://verifyai-node.onrender.com]
+- **ML Service:** [https://verifyai-ml.onrender.com]
 
 ---
 
